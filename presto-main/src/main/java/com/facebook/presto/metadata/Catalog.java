@@ -16,6 +16,8 @@ package com.facebook.presto.metadata;
 import com.facebook.presto.spi.ConnectorId;
 import com.facebook.presto.spi.connector.Connector;
 
+import java.util.Map;
+
 import static com.facebook.presto.metadata.MetadataUtil.checkCatalogName;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static java.util.Objects.requireNonNull;
@@ -31,6 +33,9 @@ public class Catalog
 
     private final ConnectorId systemTablesId;
     private final Connector systemTables;
+
+    private final Map<String, String> properties;
+    private final String connectorName;
 
     public Catalog(
             String catalogName,
@@ -48,6 +53,34 @@ public class Catalog
         this.informationSchema = requireNonNull(informationSchema, "informationSchema is null");
         this.systemTablesId = requireNonNull(systemTablesId, "systemTablesId is null");
         this.systemTables = requireNonNull(systemTables, "systemTables is null");
+        this.properties = null;
+        this.connectorName = null;
+    }
+
+    public Catalog(
+            String catalogName,
+            ConnectorId connectorId,
+            Connector connector,
+            ConnectorId informationSchemaId,
+            Connector informationSchema,
+            ConnectorId systemTablesId,
+            Connector systemTables,
+            Map<String, String> properties,
+            String connectorName)
+    {
+        this.catalogName = checkCatalogName(catalogName);
+        this.connectorId = requireNonNull(connectorId, "connectorId is null");
+        this.connector = requireNonNull(connector, "connector is null");
+        this.informationSchemaId = requireNonNull(informationSchemaId, "informationSchemaId is null");
+        this.informationSchema = requireNonNull(informationSchema, "informationSchema is null");
+        this.systemTablesId = requireNonNull(systemTablesId, "systemTablesId is null");
+        this.systemTables = requireNonNull(systemTables, "systemTables is null");
+        this.properties = properties;
+        this.connectorName = connectorName;
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
     }
 
     public String getCatalogName()
@@ -82,6 +115,10 @@ public class Catalog
             return systemTables;
         }
         throw new IllegalArgumentException("Unknown connector id: " + connectorId);
+    }
+
+    public String getConnectorName() {
+        return connectorName;
     }
 
     @Override

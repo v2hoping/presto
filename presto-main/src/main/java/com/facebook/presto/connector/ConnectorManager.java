@@ -260,7 +260,9 @@ public class ConnectorManager
                 informationSchemaConnector.getConnectorId(),
                 informationSchemaConnector.getConnector(),
                 systemConnector.getConnectorId(),
-                systemConnector.getConnector());
+                systemConnector.getConnector(),
+                properties,
+                factory.getName());
 
         try {
             addConnectorInternal(connector);
@@ -314,6 +316,17 @@ public class ConnectorManager
         metadataManager.getSchemaPropertyManager().addProperties(connectorId, connector.getSchemaProperties());
         metadataManager.getAnalyzePropertyManager().addProperties(connectorId, connector.getAnalyzeProperties());
         metadataManager.getSessionPropertyManager().addConnectorSessionProperties(connectorId, connector.getSessionProperties());
+    }
+
+    /**
+     * 创建或更新catalog
+     * @param catalogName 目录名称
+     * @param connectorName 连接器名称
+     * @param properties 配置
+     */
+    public synchronized void putConnection(String catalogName, String connectorName, Map<String, String> properties) {
+        this.dropConnection(catalogName);
+        this.createConnection(catalogName, connectorName, properties);
     }
 
     public synchronized void dropConnection(String catalogName)

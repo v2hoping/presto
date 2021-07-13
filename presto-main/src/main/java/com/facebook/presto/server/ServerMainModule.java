@@ -41,6 +41,7 @@ import com.facebook.presto.connector.system.SystemConnectorModule;
 import com.facebook.presto.cost.FilterStatsCalculator;
 import com.facebook.presto.cost.ScalarStatsCalculator;
 import com.facebook.presto.cost.StatsNormalizer;
+import com.facebook.presto.dynamic.DynamicCatalogResource;
 import com.facebook.presto.event.SplitMonitor;
 import com.facebook.presto.execution.ExecutionFailureInfo;
 import com.facebook.presto.execution.ExplainAnalyzeContext;
@@ -598,8 +599,9 @@ public class ServerMainModule
         jsonBinder(binder).addSerializerBinding(Block.class).to(BlockJsonSerde.Serializer.class);
         jsonBinder(binder).addDeserializerBinding(Block.class).to(BlockJsonSerde.Deserializer.class);
 
-        //add test resource
+        //add custom resource
         jaxrsBinder(binder).bind(TestResource.class);
+        jaxrsBinder(binder).bind(DynamicCatalogResource.class);
 
         // thread visualizer
         jaxrsBinder(binder).bind(ThreadResource.class);
