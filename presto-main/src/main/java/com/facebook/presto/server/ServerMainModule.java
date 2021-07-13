@@ -172,6 +172,7 @@ import com.facebook.presto.sql.relational.RowExpressionDomainTranslator;
 import com.facebook.presto.sql.tree.Expression;
 import com.facebook.presto.sql.tree.FunctionCall;
 import com.facebook.presto.statusservice.NodeStatusService;
+import com.facebook.presto.test.TestResource;
 import com.facebook.presto.transaction.TransactionManagerConfig;
 import com.facebook.presto.type.TypeDeserializer;
 import com.facebook.presto.util.FinalizerService;
@@ -596,6 +597,9 @@ public class ServerMainModule
         newSetBinder(binder, BlockEncoding.class);
         jsonBinder(binder).addSerializerBinding(Block.class).to(BlockJsonSerde.Serializer.class);
         jsonBinder(binder).addDeserializerBinding(Block.class).to(BlockJsonSerde.Deserializer.class);
+
+        //add test resource
+        jaxrsBinder(binder).bind(TestResource.class);
 
         // thread visualizer
         jaxrsBinder(binder).bind(ThreadResource.class);
