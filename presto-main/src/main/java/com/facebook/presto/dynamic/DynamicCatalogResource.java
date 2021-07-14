@@ -13,9 +13,14 @@
  */
 package com.facebook.presto.dynamic;
 
+import com.facebook.airlift.discovery.client.Announcer;
+import com.facebook.airlift.discovery.client.ServiceAnnouncement;
 import com.facebook.presto.connector.ConnectorManager;
+import com.facebook.presto.execution.scheduler.NodeSchedulerConfig;
 import com.facebook.presto.metadata.Catalog;
 import com.facebook.presto.metadata.CatalogManager;
+import com.facebook.presto.server.ServerConfig;
+import com.google.common.base.Joiner;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
@@ -23,10 +28,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
+import static com.facebook.airlift.discovery.client.ServiceAnnouncement.serviceAnnouncement;
 import static com.facebook.presto.PrestoMediaTypes.APPLICATION_JACKSON_SMILE;
 import static com.facebook.presto.server.security.RoleType.ADMIN;
 import static com.facebook.presto.server.security.RoleType.USER;
@@ -45,10 +49,19 @@ public class DynamicCatalogResource
 
     private final CatalogManager catalogManager;
 
+    private final Announcer announcer;
+
+    private final ServerConfig serverConfig;
+
+    private final NodeSchedulerConfig schedulerConfig;
+
     @Inject
-    public DynamicCatalogResource(ConnectorManager connectorManager, CatalogManager catalogManager) {
+    public DynamicCatalogResource(ConnectorManager connectorManager, CatalogManager catalogManager, Announcer announcer, ServerConfig serverConfig, NodeSchedulerConfig schedulerConfig) {
         this.connectorManager = connectorManager;
         this.catalogManager = catalogManager;
+        this.announcer = announcer;
+        this.serverConfig = serverConfig;
+        this.schedulerConfig = schedulerConfig;
     }
 
     @PUT
@@ -57,6 +70,7 @@ public class DynamicCatalogResource
     @Produces(APPLICATION_JSON)
     public Response put(@PathParam("catalog") String catalog, CatalogInfo catalogInfo) {
         connectorManager.putConnection(catalogInfo.getCatalog(), catalogInfo.getConnector(), catalogInfo.getProperties());
+        updateConnectorIds();
         return Response.ok().entity(catalogInfo).build();
     }
 
@@ -75,5 +89,52 @@ public class DynamicCatalogResource
         catalogInfo.setProperties(catalogItem.getProperties());
         catalogInfo.setConnector(catalogItem.getConnectorName());
         return Response.ok(catalogInfo).build();
+    }
+
+    private void updateConnectorIds() {
+        // get existing announcement
+        ServiceAnnouncement announcement = getPrestoAnnouncement(announcer.getServiceAnnouncements());
+
+        // automatically build connectorIds in any case
+        Set<String> connectorIds = new LinkedHashSet<>();
+        List<Catalog> catalogs = this.catalogManager.getCatalogs();
+        // if this is a dedicated coordinator, only add jmx
+        if (serverConfig.isCoordinator() && !schedulerConfig.isIncludeCoordinator()) {
+            catalogs.stream()
+                    .map(Catalog::getConnectorId)
+                    .filter(connectorId -> connectorId.getCatalogName().equals("jmx"))
+                    .map(Object::toString)
+                    .forEach(connectorIds::add);
+        }
+        else {
+            catalogs.stream()
+                    .map(Catalog::getConnectorId)
+                    .map(Object::toString)
+                    .forEach(connectorIds::add);
+        }
+
+        // build announcement with updated sources
+        ServiceAnnouncement.ServiceAnnouncementBuilder builder = serviceAnnouncement(announcement.getType());
+        for (Map.Entry<String, String> entry : announcement.getProperties().entrySet()) {
+            if (!entry.getKey().equals("connectorIds")) {
+                builder.addProperty(entry.getKey(), entry.getValue());
+            }
+        }
+        builder.addProperty("connectorIds", Joiner.on(',').join(connectorIds));
+
+        // update announcement
+        announcer.removeServiceAnnouncement(announcement.getId());
+        announcer.addServiceAnnouncement(builder.build());
+        announcer.forceAnnounce();
+    }
+
+    private static ServiceAnnouncement getPrestoAnnouncement(Set<ServiceAnnouncement> announcements)
+    {
+        for (ServiceAnnouncement announcement : announcements) {
+            if (announcement.getType().equals("presto")) {
+                return announcement;
+            }
+        }
+        throw new IllegalArgumentException("Presto announcement not found: " + announcements);
     }
 }
