@@ -31,7 +31,6 @@ import javax.ws.rs.core.Response;
 import java.util.*;
 
 import static com.facebook.airlift.discovery.client.ServiceAnnouncement.serviceAnnouncement;
-import static com.facebook.presto.PrestoMediaTypes.APPLICATION_JACKSON_SMILE;
 import static com.facebook.presto.server.security.RoleType.ADMIN;
 import static com.facebook.presto.server.security.RoleType.USER;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -56,7 +55,8 @@ public class DynamicCatalogResource
     private final NodeSchedulerConfig schedulerConfig;
 
     @Inject
-    public DynamicCatalogResource(ConnectorManager connectorManager, CatalogManager catalogManager, Announcer announcer, ServerConfig serverConfig, NodeSchedulerConfig schedulerConfig) {
+    public DynamicCatalogResource(ConnectorManager connectorManager, CatalogManager catalogManager, Announcer announcer, ServerConfig serverConfig, NodeSchedulerConfig schedulerConfig)
+    {
         this.connectorManager = connectorManager;
         this.catalogManager = catalogManager;
         this.announcer = announcer;
@@ -68,7 +68,8 @@ public class DynamicCatalogResource
     @Path("/{catalog}")
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response put(@PathParam("catalog") String catalog, CatalogInfo catalogInfo) {
+    public Response put(@PathParam("catalog") String catalog, CatalogInfo catalogInfo)
+    {
         connectorManager.putConnection(catalogInfo.getCatalog(), catalogInfo.getConnector(), catalogInfo.getProperties());
         updateConnectorIds();
         return Response.ok().entity(catalogInfo).build();

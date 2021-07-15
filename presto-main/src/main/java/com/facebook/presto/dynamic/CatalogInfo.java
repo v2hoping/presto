@@ -42,32 +42,38 @@ public class CatalogInfo
     private Map<String, String> properties;
 
     @JsonProperty
-    public String getConnector() {
+    public String getConnector()
+    {
         return connector;
     }
 
     @JsonProperty
-    public void setConnector(String connector) {
+    public void setConnector(String connector)
+    {
         this.connector = connector;
     }
 
     @JsonProperty
-    public String getCatalog() {
+    public String getCatalog()
+    {
         return catalog;
     }
 
     @JsonProperty
-    public void setCatalog(String catalog) {
+    public void setCatalog(String catalog)
+    {
         this.catalog = catalog;
     }
 
     @JsonProperty
-    public Map<String, String> getProperties() {
+    public Map<String, String> getProperties()
+    {
         return properties;
     }
 
     @JsonProperty
-    public void setProperties(Map<String, String> properties) {
+    public void setProperties(Map<String, String> properties)
+    {
         this.properties = properties;
     }
 }
