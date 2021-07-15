@@ -79,7 +79,8 @@ public class Catalog
         this.connectorName = connectorName;
     }
 
-    public Map<String, String> getProperties() {
+    public Map<String, String> getProperties()
+    {
         return properties;
     }
 
@@ -117,7 +118,8 @@ public class Catalog
         throw new IllegalArgumentException("Unknown connector id: " + connectorId);
     }
 
-    public String getConnectorName() {
+    public String getConnectorName()
+    {
         return connectorName;
     }
 

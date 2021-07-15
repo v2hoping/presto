@@ -324,7 +324,8 @@ public class ConnectorManager
      * @param connectorName 连接器名称
      * @param properties 配置
      */
-    public synchronized void putConnection(String catalogName, String connectorName, Map<String, String> properties) {
+    public synchronized void putConnection(String catalogName, String connectorName, Map<String, String> properties)
+    {
         this.dropConnection(catalogName);
         this.createConnection(catalogName, connectorName, properties);
     }

@@ -24,7 +24,6 @@ import java.util.Map;
  */
 public class CatalogInfo
 {
-
     /**
      * 目录
      */
